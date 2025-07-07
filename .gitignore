@@ -1,4 +1,4 @@
-# Build results
+# Build output
 bin/
 obj/
 out/
@@ -9,34 +9,31 @@ out/
 *.userosscache
 *.sln.docstates
 
-# Visual Studio
+# VS
 .vs/
 
 # VS Code
 .vscode/
 
-# ASP.NET Core secrets
-secrets.json
-
 # Logs
 *.log
+
+# Rider IDE
+.idea/
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Rider
-.idea/
-
-# NuGet
+# NuGet packages and cache
 *.nupkg
 *.snupkg
 .nuget/
 
-# Others
+# Temporary files
 *.swp
 *.bak
 *.tmp
 
-# Sensitive config
+# Secrets and sensitive configs
 appsettings.json

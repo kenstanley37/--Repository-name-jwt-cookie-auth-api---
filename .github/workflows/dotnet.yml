@@ -14,19 +14,19 @@ jobs:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: 🧰 Setup .NET 9 SDK with NuGet cache
+      - name: 📦 Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          # cache the runner’s global NuGet folder
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('api/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: 🧰 Setup .NET 9 SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-          cache: nuget
-          cache-dependency-path: |
-            api/api.csproj
-            api/**/*.csproj
-
-      - name: 🔍 Debug workspace layout
-        run: |
-          echo "Workspace root: $PWD"
-          ls -R .
 
       - name: 📦 Restore dependencies
         run: dotnet restore api/api.csproj
