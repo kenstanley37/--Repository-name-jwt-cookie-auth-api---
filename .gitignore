@@ -1,37 +1,42 @@
-## Build results
+# Build results
 bin/
 obj/
 out/
 
-## User-specific files
+# User-specific files
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-## Visual Studio Code
-.vscode/
+# Visual Studio
 .vs/
 
-## ASP.NET Core secrets
+# VS Code
+.vscode/
+
+# ASP.NET Core secrets
 secrets.json
 
-## Logs
+# Logs
 *.log
 
-## OS files
+# OS files
 .DS_Store
 Thumbs.db
 
-## Rider
+# Rider
 .idea/
 
-## NuGet
+# NuGet
 *.nupkg
 *.snupkg
 .nuget/
 
-## Others
+# Others
 *.swp
 *.bak
 *.tmp
+
+# Sensitive config
+appsettings.json
