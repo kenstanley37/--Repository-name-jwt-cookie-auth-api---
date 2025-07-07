@@ -1,24 +1,20 @@
 # JWT Cookie Auth API (.NET 9)
 
-A secure .NET 9 Web API using JWT authentication stored in HttpOnly cookies and refresh tokens. Built for modern single-page apps like Angular.
+A secure Web API built with .NET 9 using JWT authentication stored in HttpOnly cookies and refresh tokens. Designed for modern frontends like Angular or React.
 
 ## 🔐 Features
 
-- Login issues a short-lived JWT (access token) and long-lived refresh token
-- Tokens stored in secure HttpOnly cookies
-- Protected endpoints via [Authorize]
-- Refresh endpoint for silent re-authentication
-- Logout clears both cookies
-- Swagger UI available at `/swagger`
+- Login with JWT issued in HttpOnly cookie
+- Refresh token support
+- Secure cookie handling with CORS
+- Swagger UI at `/swagger`
+- GitHub Actions CI/CD with Docker publishing
 
 ## 🚀 Getting Started
 
-Clone the repo and set up your secrets:
+Clone & configure:
 
 ```bash
-git clone https://github.com/your-username/jwt-cookie-auth-api.git
-cd jwt-cookie-auth-api
+git clone https://github.com/kenstanley37/jwt-cookie-auth-api.git
+cd jwt-cookie-auth-api/api
 cp appsettings.example.json appsettings.json
-
-
-![Build](https://github.com/kenstanley37/jwt-cookie-auth-api/actions/workflows/dotnet.yml/badge.svg)
