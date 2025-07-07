@@ -19,3 +19,6 @@ Clone the repo and set up your secrets:
 git clone https://github.com/your-username/jwt-cookie-auth-api.git
 cd jwt-cookie-auth-api
 cp appsettings.example.json appsettings.json
+
+
+![Build](https://github.com/kenstanley37/jwt-cookie-auth-api/actions/workflows/dotnet.yml/badge.svg)
