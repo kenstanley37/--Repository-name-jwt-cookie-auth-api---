@@ -61,7 +61,7 @@ jobs:
       - name: 📦 Build and Push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./api
+          context: .
           file: ./api/Dockerfile
           push: true
           tags: kenstanley37/jwt-cookie-auth-api:latest
