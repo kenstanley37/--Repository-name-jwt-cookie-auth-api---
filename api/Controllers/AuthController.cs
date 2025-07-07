@@ -27,28 +27,38 @@ namespace api.Controllers
         {
             if (model.Username == "admin" && model.Password == "password")
             {
-                var claims = new[] { new Claim(ClaimTypes.Name, model.Username) };
+                // Guard and fetch config values
+                var keyText = _config["Jwt:Key"]
+                    ?? throw new InvalidOperationException("Jwt:Key not configured");
+                var issuer = _config["Jwt:Issuer"]
+                    ?? throw new InvalidOperationException("Jwt:Issuer not configured");
+                var audience = _config["Jwt:Audience"]
+                    ?? throw new InvalidOperationException("Jwt:Audience not configured");
+                var expiresText = _config["Jwt:ExpiresInMinutes"]
+                    ?? throw new InvalidOperationException("Jwt:ExpiresInMinutes not configured");
 
-                var key = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyText));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-                var token = new JwtSecurityToken(
-                    issuer: _config["Jwt:Issuer"],
-                    audience: _config["Jwt:Audience"],
+                var claims = new[] { new Claim(ClaimTypes.Name, model.Username) };
+                var expiresIn = TimeSpan.FromMinutes(double.Parse(expiresText));
+
+                var jwtToken = new JwtSecurityToken(
+                    issuer: issuer,
+                    audience: audience,
                     claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(
-                        double.Parse(_config["Jwt:ExpiresInMinutes"])),
+                    expires: DateTime.UtcNow.Add(expiresIn),
                     signingCredentials: creds);
 
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
+                // Set cookies
                 Response.Cookies.Append("jwt", tokenString, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(15)
+                    Expires = DateTimeOffset.UtcNow.Add(expiresIn)
                 });
 
                 var refreshToken = new RefreshToken
@@ -58,7 +68,6 @@ namespace api.Controllers
                     Expires = DateTime.UtcNow.AddDays(7),
                     IsRevoked = false
                 };
-
                 _refreshTokens.Add(refreshToken);
 
                 Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
@@ -69,7 +78,6 @@ namespace api.Controllers
                     Expires = refreshToken.Expires
                 });
 
-
                 return Ok(new { message = "Logged in" });
             }
 
@@ -79,29 +87,32 @@ namespace api.Controllers
         [HttpPost("refresh")]
         public IActionResult Refresh()
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            var storedToken = _refreshTokens.FirstOrDefault(t =>
-                t.Token == refreshToken && !t.IsRevoked && t.Expires > DateTime.UtcNow);
+            var rt = Request.Cookies["refreshToken"]
+                ?? throw new InvalidOperationException("Refresh token cookie missing");
+            var storedToken = _refreshTokens
+                .FirstOrDefault(t => t.Token == rt && !t.IsRevoked && t.Expires > DateTime.UtcNow);
 
             if (storedToken == null)
                 return Unauthorized();
 
-            // Optionally revoke old token
             storedToken.IsRevoked = true;
 
-            // Issue new access token
-            var claims = new[] { new Claim(ClaimTypes.Name, storedToken.Username) };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var keyText = _config["Jwt:Key"]!;
+            var issuer = _config["Jwt:Issuer"]!;
+            var audience = _config["Jwt:Audience"]!;
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyText));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
+            var claims = new[] { new Claim(ClaimTypes.Name, storedToken.Username) };
+
+            var jwtToken = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds);
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
             Response.Cookies.Append("jwt", tokenString, new CookieOptions
             {
                 HttpOnly = true,
@@ -113,27 +124,26 @@ namespace api.Controllers
             return Ok(new { message = "Token refreshed" });
         }
 
-
         [Authorize]
         [HttpGet("secure-data")]
-        public IActionResult GetSecureData()
-        {
-            return Ok("You made it to the secure zone.");
-        }
+        public IActionResult GetSecureData() =>
+            Ok("You made it to the secure zone.");
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            var storedToken = _refreshTokens.FirstOrDefault(t => t.Token == refreshToken);
-            if (storedToken != null) storedToken.IsRevoked = true;
+            var rt = Request.Cookies["refreshToken"];
+            if (rt != null)
+            {
+                var stored = _refreshTokens.FirstOrDefault(t => t.Token == rt);
+                if (stored != null) stored.IsRevoked = true;
+            }
 
             Response.Cookies.Delete("jwt");
             Response.Cookies.Delete("refreshToken");
-
             return Ok(new { message = "Logged out" });
-
         }
+
 
     }
 }
